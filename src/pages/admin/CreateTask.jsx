@@ -2,14 +2,15 @@ import React, { useState } from "react";
 import FeildSet from "../../component/common/FeildSet";
 import Select from "../../component/ui/Select";
 import { api } from "../../lib/api";
+import { createTask } from "../../hooks/adminApi";
 import { useToast } from "../../context/TostProvider";
 import { useUserInfo } from "../../context/UserInfoContext";
 
 const fields = [
   { label: "Title:", name: "title", type: "text" },
   { label: "Description:", name: "description", type: "text" },
-  { label: "Start Date:", name: "start_date", type: "text" },
-  { label: "End Date:", name: "end_date", type: "text" },
+  { label: "Start Date:", name: "start_date", type: "date" },
+  { label: "End Date:", name: "end_date", type: "date" },
   { label: "Estimated Hour:", name: "estimated_hours", type: "text" },
 ];
 
@@ -26,6 +27,7 @@ const initialState = {
 
 export default function CreateTask() {
   const { statusOptions, priorityOptions, users } = useUserInfo();
+  const addToast = useToast();
 
   const [errMsg, setErrMsg] = useState(initialState);
   const [taskData, setTaskData] = useState(initialState);
@@ -37,11 +39,16 @@ export default function CreateTask() {
     }));
   }
 
-  function handleAssignee() {
-    api.post("/task/create", taskData)
-        .then(() => {useToast("Successfully Added");})
-        .catch((e) => {useToast(e?.response?.data?.detail || "Something went wrong"); console.log(e);});
+  function handleSubmit() {
+    createTask(taskData)
+      .then((res) => {
+        addToast("Task Saved Successfully", "success");
+      })
+      .catch((err) => {
+        addToast(err);
+      });
   }
+
   return (
     <div>
       {fields.map((field, index) => (
@@ -87,6 +94,7 @@ export default function CreateTask() {
           label="status_name"
         />
       </div>
+      <button onClick={() => handleSubmit()}>Submit</button>
     </div>
   );
 }
